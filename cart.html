@@ -10,11 +10,14 @@
 <body>
     <!-- 宿主文件 -->
     <div id="app">
-        {{date}}
+        <h2>
+            <!-- 插值文本 -->
+            {{title}}
+        </h2>
         <hr>
-        {{htmlStr}}
-        <hr>
-        <div v-html="htmlStr" v-bind:title="title"></div>
+        <div v-for="c in course" :key="c">
+            {{c}}
+        </div>
     </div>
 </body>
 <script>
@@ -23,9 +26,12 @@
         el: '#app',
         data() {
             return {
-                title: 'hello world!!!',
+                title: '购物车',
                 date: new Date(),
-                htmlStr: '<h1>v-html指令</h1>'
+                course: [
+                    'vue',
+                    'node'
+                ]
             }
         },
         watch: {
@@ -34,9 +40,6 @@
             }
         },
     });
-    setInterval(() => {
-        app.date = new Date();
-    }, 1000);
 </script>
 
 </html>
