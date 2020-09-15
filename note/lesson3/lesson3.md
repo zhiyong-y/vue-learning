@@ -27,5 +27,5 @@
         }
     }
 
-3. loadsh.js
+3. lodash.js
 ```
