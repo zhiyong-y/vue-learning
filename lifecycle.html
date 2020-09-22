@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物车</title>
+    <script src="js/vue.js"></script>
+    <style>
+        .active {
+            background-color: #dddddd;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 宿主文件 -->
+    <div id="app">
+        <h2>
+            <!-- 插值文本 -->
+            {{title}}
+        </h2>
+        <hr>
+        <div v-for="c in course" :key="c" :class="{active: selectedCourse === c}" @click="selectedCourse = c">
+            {{c}}
+        </div>
+        <hr>
+        <p>一共{{total}}课程</p>
+        <input type="text" v-model="coursename" v-on:keydown.enter="addCourse">
+        <div v-text="coursename"></div>
+
+    </div>
+</body>
+<script>
+    // 创建实例
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                title: '购物车',
+                date: new Date(),
+                course: [
+                    'vue',
+                    'node'
+                ],
+                coursename: '',
+                selectedCourse: null,
+            }
+        },
+        methods: {
+            addCourse(e) {
+                this.course.push(this.coursename);
+                let unique = new Set(this.course);
+                this.course = [...unique];
+
+            }
+        },
+        // watch: {
+        //     course(newValue, oldValue) {
+        //         console.info(newValue)
+        //     }
+        // },
+        watch: {
+            course: {
+                immediate: true,
+                deep: true,
+                handler(newValue, oldValue) {
+                    console.info(newValue)
+                }
+            }
+        },
+        computed: {
+            total() {
+                return this.course.length + '门'; 
+            }
+        }
+    });
+</script>
+
+</html>
