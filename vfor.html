@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v-for</title>
+    <script src="js/vue.js"></script>
+</head>
+
+<body>
+    <!-- 宿主文件 -->
+    <div id="app">
+        <form @submit.prevent="addCourseList">
+            <label for="new-course"  @click.right.prevent="test">Add new Course</label>
+            <input type="text" id="new-course" v-model.number="courseNames">
+            <button>Add</button>
+        </form>
+        <p>{{courseNames}}</p>
+        <ul>
+            <li is="todo-item" v-for="(item, index) in courseList" :key="item.id" :title="item.courseName" @remove="removeCourse(index)"></li>
+        </ul>
+    </div>
+</body>
+<script>
+    Vue.component('todo-item', {
+        template: `
+                <li>
+                {{ title }}
+                <button v-on:click="$emit('remove')">Remove</button>
+                </li>
+            `,
+        props: ['title']
+    });
+    // 创建实例
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                courseNames: '',
+                courseList: [
+                    { id: 1, courseName: 'java' },
+                    { id: 2, courseName: 'vue' },
+                ],
+                courseId: 3
+            }
+        },
+        mounted() {
+
+        },
+        methods: {
+            addCourseList: function () {
+                this.courseList.push({
+                    id: this.courseId++,
+                    courseName: this.courseNames
+                })
+                this.courseNames = ''
+                console.log(this.courseList);
+            },
+            removeCourse: function(index) {
+                this.courseList.splice(index, 1);
+            },
+            test: function(event){
+                console.log(event);
+                alert('禁止复制')
+            },
+            lazyTest: function(){
+                console.info(vm.courseName)
+            }
+        }
+    });
+</script>
+
+</html>

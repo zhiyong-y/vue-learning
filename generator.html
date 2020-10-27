@@ -20,19 +20,13 @@
             {{title}}
         </h2>
         <hr>
-
-        <label for="add">新增课程：</label>
-        <input type="text" id="add" v-model="coursename" v-on:keydown.enter="addCourse">
-        <hr>
-
         <div v-for="c in course" :key="c" :class="{active: selectedCourse === c}" @click="selectedCourse = c">
             {{c}}
         </div>
         <hr>
-        <p v-if="course.length > 0">一共{{total}}课程</p>
-        <p v-else>没有课程</p>
-        
-        
+        <p>一共{{total}}课程</p>
+        <input type="text" v-model="coursename" v-on:keydown.enter="addCourse">
+        <div v-text="coursename"></div>
 
     </div>
 </body>
@@ -52,31 +46,15 @@
                 selectedCourse: null,
             }
         },
-        methods: {
-            addCourse(e) {
-                this.course.push(this.coursename);
-                let unique = new Set(this.course);
-                this.course = [...unique];
+        mounted () {
 
-            }
+            this.heolloGenerator('a')
         },
-        // watch: {
-        //     course(newValue, oldValue) {
-        //         console.info(newValue)
-        //     }
-        // },
-        watch: {
-            course: {
-                immediate: true,
-                deep: true,
-                handler(newValue, oldValue) {
-                    console.info(newValue)
-                }
-            }
-        },
-        computed: {
-            total() {
-                return this.course.length + '门'; 
+        methods: {
+            async heolloGenerator: (value) => {
+                console.log(value);
+                const b = await heolloGenerator('b')
+                console.log(b);
             }
         }
     });

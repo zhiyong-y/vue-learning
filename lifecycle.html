@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,6 +32,16 @@
     </div>
 </body>
 <script>
+    // 异步获取接口数据
+    const getCourses = () => {
+        return new Promise((resolve, reject) => {
+            setTimeout(function () {
+                // 异步请求你接口一秒返回数据
+                resolve(['aaa', 'bbb', 'ccc'])
+            }, 1000)
+        })
+    }
+
     // 创建实例
     const app = new Vue({
         el: '#app',
@@ -46,12 +57,42 @@
                 selectedCourse: null,
             }
         },
+        beforeCreate() {
+            // 执行时组件未被创建，通常用于组件初始化任务
+        },
+        async created() {
+            // 组件初始化完成，各种数据可以使用，常用于异步数据获取
+
+            // 组件实例已经创建，未挂载，DOM元素不存在
+            // created钩子和mounted钩子使用多
+            // 异步请求数据，返回的是Promise对象，则可以使用async...await
+            const courses = await getCourses();
+            // 异步请求执行完成后，再执行下边代码
+            this.course = courses;
+        },
+        beforeMount() {
+            // 在此之前未渲染，DOM无法访问
+        },
+        mounted() {
+            // 可以访问DOM元素
+        },
+        beforeUpdate() {
+            // 数据更新之前
+        },
+        updated() {
+            //数据更新后
+        },
+        beforeDestory() { 
+            // 常用于销毁前取消存在的定时器等
+        },
+        destoryed() { 
+            //  销毁后实例化过程结束
+        },
         methods: {
             addCourse(e) {
                 this.course.push(this.coursename);
                 let unique = new Set(this.course);
                 this.course = [...unique];
-
             }
         },
         // watch: {
@@ -70,7 +111,7 @@
         },
         computed: {
             total() {
-                return this.course.length + '门'; 
+                return this.course.length + '门';
             }
         }
     });

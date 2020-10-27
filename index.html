@@ -28,9 +28,13 @@
                 htmlStr: '<h1>v-html指令</h1>'
             }
         },
+        created() {
+            // 选项property中不能使用箭头函数
+            console.log('created....');
+        },
         watch: {
             date(newValue, oldValue) {
-                console.info(newValue)
+                //console.info(newValue)
             }
         },
     });
