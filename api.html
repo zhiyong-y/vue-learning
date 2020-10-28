@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物车</title>
+    <script src="js/vue.js"></script>
+    <style>
+        .active {
+            background-color: #dddddd;
+        }
+
+        .message-close-btn {
+            float: right;
+            padding-right: 10px;
+            cursor: pointer;
+        }
+
+        div[type=success] {
+            width: 100%;
+            height: 30px;
+            line-height: 30px;
+            font-size: 12px;
+            text-indent: 10px;
+            color: #333;
+            background-color: rgba(0, 255, 153, .4);
+            border: 1px solid rgba(0, 255, 153, .8);
+            border-radius: 4px;
+        }
+
+        div[type=error] {
+            width: 100%;
+            height: 30px;
+            line-height: 30px;
+            font-size: 12px;
+            text-indent: 10px;
+            color: #333;
+            background-color: rgba(220, 20, 60, .4);
+            border: 1px solid rgba(220, 20, 60, .8);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 宿主文件 -->
+    <div id="app">
+        <!-- 使用:is-show.sync父组件可不用处理事件 -->
+
+        <!-- 父组件控制状态 -->
+        <!-- <message :is-show.sync="show" type="success"> -->
+        <!-- 改造为：自组件自己控制状态 -->
+        <message ref="msgCom" type="success">
+            <!-- 作用域插槽 -->
+            <!-- <template v-slot:title="slotProps"><strong>{{slotProps.title}}</strong></template> -->
+
+            <!-- 具名插槽 -->
+            <template v-slot:title><strong>恭喜</strong></template>
+            <!-- 默认插槽 -->
+            <template>新增课程成功</template>
+        </message>
+        <h2>
+            <!-- 插值文本 -->
+            {{title}}
+        </h2>
+        <hr>
+        <!-- 新增课程组件 -->
+        <course-add v-model="coursename" @add-course="addCourse" :course-title="a"></course-add>
+
+        <!-- 批量更新价格 -->
+        <label for="price">批量更新：</label>
+        <input v-model.number="price" type="number" step="1" id="price" ref="inPrice" />
+        <button @click="batchPrice">更新</button>
+        <hr>
+        <course-list :courses="course" :type="attrs" v-bind="$attrs"></course-list>
+    </div>
+</body>
+<script>
+
+    const getCourses = () => {
+        return new Promise((resolve, reject) => {
+            setTimeout(function () {
+                // 异步请求你接口一秒返回数据
+                resolve([{ 'name': 'TypeScript' }, { 'name': 'TypeScript2' }, { 'name': 'TypeScript3' }])
+            }, 1000)
+        })
+    }
+
+    /**
+     * 列表组件
+    */
+    Vue.component('course-list', {
+        // 2.4新增：未在props中注册的属性，不传递至子组件上，但是可通过$attrs向内传递
+        inheritAttrs: false,
+        data() {
+            return {
+                selectedCourse: ''
+            }
+        },
+        props: {
+            courses: {
+                type: Array,
+                defalue: []
+            }
+        },
+        template: `
+            <div class="list-component">
+                <div v-for="c in courses" :key="c.name" :class="{active: selectedCourse === c}" @click="selectedCourse = c">
+                    {{c.name}} - $ {{c.price}}
+                </div>
+                <hr>
+                <p v-if="courses.length > 0">一共{{total}}课程</p>
+                <p v-else>没有课程</p>
+            </div>
+        `,
+        mounted() {
+            // 获取通过$attrs传入的属性
+            // 通过$attrs传递未在props中注册的属性
+            console.log(this.$attrs);
+
+            console.log('-------获取实例代理的props--------');
+            console.log(this.$props);
+            console.log('--------------------------------');
+
+            console.log('-------获取实例代理的根DOM元素--------');
+            console.log(this.$el);
+            console.log('--------------------------------');
+
+            console.log('-------获取当前实例的父组件--------');
+            console.log(this.$parent);
+            console.log('--------------------------------');
+        },
+        computed: {
+            total() {
+                return this.courses.length + '门';
+            }
+        }
+    })
+
+    /**
+     * 表单组件
+    */
+    Vue.component('course-add', {
+        props: {
+            value: {
+                type: String,
+                default: ''
+            },
+            // props传参使用驼峰，则组件上使用的xxx-xxx
+            courseTitle: {
+                type: String,
+                default: ''
+            }
+        },
+        template: `
+            <div>
+                <label for="add" v-text="courseTitle"></label>
+                <input type="text" id="add" :value="value" @input="onInput" v-on:keydown.enter="addCourse"> 
+            </div>
+        `,
+        methods: {
+            addCourse() {
+                this.$emit('add-course')
+            },
+            onInput(e) {
+                this.$emit('input', e.target.value)
+            }
+        },
+    });
+
+    /**
+     * 弹窗组件/使用插槽内容分发
+    */
+    Vue.component('message', {
+        data() {
+            return {
+                show: false
+            }
+        },
+        props: {
+            types: {
+                type: String,
+                default: ''
+            },
+            // isShow: {
+            //     type: Boolean,
+            //     default: false
+            // },
+            title: {
+                type: String,
+                default: ''
+            }
+        },
+        template: `
+            <div v-if="show">
+                <!-- 具名插槽/作用域插槽 -->
+                <slot name="title" title="来自message的标题"></slot>
+                <!-- 通过插槽获取内容 -->
+                <slot></slot>
+                <!-- update:xxx 对应父组件使用了sync -->
+                <span class="message-close-btn" @click="toggle">x</span>
+            </div>
+        `,
+        mounted() {
+            console.log('****获取当前组件插槽****');
+            console.log(this.$slots);
+            console.log(this.$slots.title);
+            console.log('*********************');
+        },
+        methods: {
+            toggle() {
+                this.show = !this.show;
+            }
+        },
+        watch: {
+            // 监听show，如果show值发生变化，且没有点击关闭，则自动关闭
+            show(newValue, oldValue) {
+                if (newValue) {
+                    setTimeout(() => {
+                        // this.$emit('update:is-show', false)
+                        this.toggle();
+                    }, 3000);
+                }
+            }
+        },
+    });
+
+    /**
+     * 创建实例
+    */
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                a: '新增课程：',
+                title: '购物车',
+                date: new Date(),
+                course: [],
+                coursename: '',
+                selectedCourse: null,
+                show: false,
+                price: 0,
+                attrs: '测试$attrs'
+            }
+        },
+        async created() {
+            const courses = await getCourses();
+            this.course = courses;
+
+            // 批量更新价格
+            this.batchPrice();
+        },
+        mounted() {
+            // 组件上使用ref属性，方法中通过$refs获取元素
+            this.$refs.inPrice.focus();
+
+            // API
+            // 实例property
+            console.log(this.$data);
+            // 获取当前实例根DOM元素
+            console.log(this.$el);
+            // 获取父组件/如果没有则undefined
+            console.log(this.$parent);
+            // 获取子组件
+            console.log(this.$children);
+            console.log(this.$children[0].$data);
+            console.log(this.$children[1].$el);
+            // 获取当前组件中的插槽
+            console.log(this.$slots);
+        },
+        methods: {
+            addCourse(e) {
+                let o = {};
+                o.name = this.coursename;
+                this.course.push(o);
+                //let unique = new Set(this.course);
+                //this.course = [...unique];
+                //this.show = true;
+
+                this.$refs.msgCom.toggle();
+
+                console.log(app.$data);
+                console.log(this.$data);
+            },
+            batchPrice() {
+                // 由于price属性是动态新增属性，即使修改了price的值也不会重新渲染。
+                this.course.forEach(course => {
+                    // course.price = this.price;
+                    // 解决方案就是使用$set
+                    this.$set(course, 'price', this.price);
+                });
+            }
+        },
+        watch: {
+            course: {
+                // 默认监听器加载页面的时候不会立即执行（计算属性会自动执行一次），如果需要监听器自动执行，需要使用带参数的监听器
+                immediate: true,
+                deep: true,
+                handler(newValue, oldValue) {
+                    console.info(newValue)
+                }
+            }
+        },
+        computed: {
+            total() {
+                return this.course.length + '门';
+            }
+        }
+    });
+</script>
+
+</html>
