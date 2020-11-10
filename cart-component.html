@@ -101,6 +101,11 @@
                 <p v-else>没有课程</p>
             </div>
         `,
+        watch: {
+            courses(newValue, oldValue) {
+                console.log(newValue);
+            }
+        },
         computed: {
             total() {
                 return this.courses.length + '门';

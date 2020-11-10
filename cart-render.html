@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物车</title>
+    <script src="js/vue.js"></script>
+    <style>
+        .active {
+            background-color: #dddddd;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 宿主文件 -->
+    <div id="app">
+        <!-- 使用render实现 -->
+        <heading level=1 :title="title">{{title}}</heading>
+        <h2>
+            {{title}}
+        </h2>
+        <hr>
+
+        <label for="add">新增课程：</label>
+        <input type="text" id="add" v-model="coursename" v-on:keydown.enter="addCourse">
+        <hr>
+
+        <div v-for="c in course" :key="c" :class="{active: selectedCourse === c}" @click="selectedCourse = c">
+            {{c}}
+        </div>
+        <hr>
+        <p v-if="course.length > 0">一共{{total}}课程</p>
+        <p v-else>没有课程</p>
+
+
+
+    </div>
+</body>
+<script>
+    Vue.component('heading', {
+        props: {
+            title: {
+                type: String,
+                default: '',
+            },
+            level: {
+                type: [String, Number],
+                default: '1'
+            }
+        },
+        render(h){
+            // 获取插槽内容(默认插槽)
+            console.log(this.$slots.default);
+            console.log(this.title);
+            // 默认使用h；返回createElement返回的VNode
+            // h(createElement)可传三个参数
+            // 1. 必要参数，用于提供dom的html内容
+            // 2. 非必要，传的是组件样式class、属性、事件on:{click:function(){}}等
+            // 3. 非必要，VNode数组
+            return h(
+                'h'+this.level, //模版使用的标签元素，这里使用的是h1,h2
+                // this.title  //内容
+                this.$slots.default // VNode
+                );
+        }
+    });
+    // 创建实例
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                title: '购物车',
+                date: new Date(),
+                course: [
+                    'vue',
+                    'node'
+                ],
+                coursename: '',
+                selectedCourse: null,
+            }
+        },
+        methods: {
+            addCourse(e) {
+                this.course.push(this.coursename);
+                let unique = new Set(this.course);
+                this.course = [...unique];
+
+            }
+        },
+        // watch: {
+        //     course(newValue, oldValue) {
+        //         console.info(newValue)
+        //     }
+        // },
+        watch: {
+            course: {
+                immediate: true,
+                deep: true,
+                handler(newValue, oldValue) {
+                    console.info(newValue)
+                }
+            }
+        },
+        computed: {
+            total() {
+                return this.course.length + '门';
+            }
+        }
+    });
+</script>
+
+</html>

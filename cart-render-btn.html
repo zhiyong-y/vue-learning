@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>render-btn</title>
+    <script src="js/vue.js"></script>
+    <link rel="stylesheet" href="https://at.alicdn.com/t/font_2170330_qrz3v2wtsig.css">
+    <style>
+        .active {
+            background-color: #dddddd;
+        }
+
+        .btn {
+            border-radius: 4px;
+            background: transparent;
+            border: 0px solid #e3e3e3;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 12px !important;
+        }
+
+        .btn-disabled {
+            cursor: not-allowed;
+        }
+
+        .btn-normal {
+            width: 80px;
+            height: 40px;
+        }
+
+        .btn-small {
+            width: 60px;
+            height: 30px;
+        }
+
+        .btn-large {
+            width: 100px;
+            height: 50px;
+        }
+
+        .btn-primary {
+            background-color: #00A3CC;
+            color: #ffffff;
+            transition: background-color .6s;
+        }
+
+        .btn-primary:hover {
+            background-color: rgba(0, 163, 203, .8);
+            color: #ffffff;
+            transition: background-color .6s;
+        }
+
+        .btn-success {
+            background-color: #64D96F;
+            color: #ffffff;
+            transition: background-color .6s;
+        }
+
+        .btn-success:hover {
+            background-color: rgba(100, 217, 111, .8);
+            color: #ffffff;
+            transition: background-color .6s;
+        }
+
+        .btn-warning {
+            background-color: #FF6D48;
+            color: #ffffff;
+            transition: background-color .6s;
+        }
+
+        .btn-warning:hover {
+            background-color: rgba(255, 109, 72, .8);
+            color: #ffffff;
+            transition: background-color .6s;
+        }
+
+        .btn-error {
+            background-color: #C63300;
+            color: #ffffff;
+            transition: background-color .6s;
+        }
+
+        .btn-error:hover {
+            background-color: rgba(198, 51, 0, 0.8);
+            color: #ffffff;
+            transition: background-color .6s;
+        }
+    </style>
+</head>
+<script>
+    // usage: someVar.formatMoney(decimalPlaces, symbol, thousandsSeparator, decimalSeparator)
+    // defaults: (2, "$", ",", ".")
+    Number.prototype.formatMoney = function (places, symbol, thousand, decimal) {
+        places = !isNaN(places = Math.abs(places)) ? places : 2;
+        symbol = symbol !== undefined ? symbol+" " : "$ ";
+        thousand = thousand || ",";
+        decimal = decimal || ".";
+        var number = this,
+            negative = number < 0 ? "-" : "",
+            i = parseInt(number = Math.abs(+number || 0).toFixed(places), 10) + "",
+            j = (j = i.length) > 3 ? j % 3 : 0;
+        return symbol + negative + (j ? i.substr(0, j) + thousand : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousand) + (places ? decimal + Math.abs(number - i).toFixed(places).slice(2) : "");
+    };
+</script>
+
+<body>
+    <!-- 宿主文件 -->
+    <div id="app">
+        <!-- 通过render渲染创建按钮组件 -->
+        <y-button class="btn" title="自定义按钮" type="primary" size="small">主要按钮</y-button>
+        <br><br>
+        <y-button class="btn" type="success" size="normal" icon="iconadd">成功按钮</y-button>
+        <br><br>
+        <y-button class="btn" type="warning" size="large" icon="iconfabulous" @click="handler">警告按钮</y-button>
+        <br><br>
+        <y-button class="btn" type="error" size="normal" @click="handler" icon="iconashbin" disabled="false">错误按钮
+        </y-button>
+
+        <br><br>
+
+        <h2>{{money|moneyFilter('$')}}</h2>
+    </div>
+</body>
+<script>
+    Vue.component('y-button', {
+        inheritAttrs: false,
+        data() {
+            return {
+                size: '',
+                type: '',
+                isDisabled: false,
+                icons: 'iconfont '
+            }
+        },
+        props: {
+        },
+        created() {
+            this.size = !this.$attrs.size ? 'normal' : this.$attrs.size;
+            this.type = !this.$attrs.type ? 'primary' : this.$attrs.type;
+            this.isDisabled = this.$attrs.disabled ? 'btn-disabled' : '';
+            this.icons = this.$attrs.icon ? this.icons + this.$attrs.icon : '';
+        },
+        render(h) {
+            return h(
+                'button',
+                {
+                    class: [
+                        'btn-' + this.size,
+                        'btn-' + this.type,
+                        this.isDisabled,
+                        this.icons
+                    ],
+                    on: {
+                        click: () => { this.$emit('click'); }
+                    },
+                    attrs: {
+                        disabled: this.$attrs.disabled ? true : false,
+                        title: this.$attrs.title
+                    }
+                },
+                this.$slots.default
+            );
+        }
+    });
+    // 创建实例
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                money: 12342121
+            }
+        },
+        methods: {
+            handler: function () {
+                console.log('handler....');
+            }
+        },
+        filters: {
+            moneyFilter: function (value, symbol) {
+                return value.formatMoney(0, symbol);
+            }
+        }
+    });
+</script>
+
+</html>

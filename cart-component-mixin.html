@@ -47,52 +47,102 @@
     <!-- 宿主文件 -->
     <div id="app">
         <!-- 使用:is-show.sync父组件可不用处理事件 -->
-
-        <!-- 父组件控制状态 -->
-        <!-- <message :is-show.sync="show" type="success"> -->
-        <!-- 改造为：自组件自己控制状态 -->
-        <message ref="msgCom" type="success">
+        <message :is-show.sync="show" type="success">
             <!-- 作用域插槽 -->
-            <!-- <template v-slot:title="slotProps"><strong>{{slotProps.title}}</strong></template> -->
+            <template v-slot:title="slotProps"><strong>{{slotProps.title}}</strong></template>
 
             <!-- 具名插槽 -->
-            <template v-slot:title><strong>恭喜</strong></template>
+            <!-- <template v-slot:title><strong>恭喜</strong></template> -->
             <!-- 默认插槽 -->
             <template>新增课程成功</template>
         </message>
+        <heading level=1 :title="title">{{title}}</heading>
         <h2>
             <!-- 插值文本 -->
             {{title}}
         </h2>
         <hr>
-        <!-- 新增课程组件 -->
         <course-add v-model="coursename" @add-course="addCourse" :course-title="a"></course-add>
-
-        <!-- 批量更新价格 -->
-        <label for="price">批量更新：</label>
-        <input v-model.number="price" type="number" step="1" id="price" ref="inPrice" />
-        <button @click="batchPrice">更新</button>
         <hr>
-        <course-list :courses="course" :type="attrs" aaa="asd"></course-list>
+        <course-list :courses="course"></course-list>
     </div>
 </body>
 <script>
-
     const getCourses = () => {
         return new Promise((resolve, reject) => {
             setTimeout(function () {
                 // 异步请求你接口一秒返回数据
-                resolve([{ 'name': 'TypeScript' }, { 'name': 'TypeScript2' }, { 'name': 'TypeScript3' }])
+                resolve(['aaa', 'bbb', 'ccc'])
             }, 1000)
         })
     }
 
+    // 局部混入
+    const helloMixin = {
+        data() {
+            return {
+                prop1: 'prop1',
+                prop2: {
+                    name: 'prop2'
+                }
+            }
+        },
+        created() {
+            this.hello();
+        },
+        methods: {
+            hello() {
+                console.log('mixin hello...');
+            }
+        }
+    }
+    Vue.component('heading', {
+        data() {
+            // mixin的选项合并：调用者的选项优先级高于mixin，如果同名则被覆盖。否则合并
+            // 值为对象的选项，在合并的时候，存在冲突时，以组件的为主。
+            return {
+                prop1: 'prop1-new',
+                prop3: 'string,类型冲突'
+            }
+        },
+        created() {
+            console.log('组件钩子被调用');
+            // mixins后可调用
+            // this.hello();
+            console.log(this.$data);
+        },
+        // 无论mixins选项在组件的那个位置引用，混入对象的钩子，始终在组件的钩子之前执行！！！！
+        mixins: [helloMixin],
+        props: {
+            title: {
+                type: String,
+                default: '',
+            },
+            level: {
+                type: [String, Number],
+                default: '1'
+            }
+        },
+        render(h) {
+            // 获取插槽内容(默认插槽)
+            console.log(this.$slots.default);
+            console.log(this.title);
+            // 默认使用h；返回createElement返回的VNode
+            // h(createElement)可传三个参数
+            // 1. 必要参数，用于提供dom的html内容
+            // 2. 非必要，传的是组件样式class、属性、事件on:{click:function(){}}等
+            // 3. 非必要，VNode数组
+            return h(
+                'h' + this.level, //模版使用的标签元素，这里使用的是h1,h2
+                // this.title  //内容
+                this.$slots.default // VNode
+            );
+        }
+    });
     /**
      * 列表组件
     */
     Vue.component('course-list', {
-        // 2.4新增：未在props中注册的属性，不传递至子组件上，但是可通过$attrs向内传递
-        inheritAttrs: false,
         data() {
             return {
                 selectedCourse: ''
@@ -105,32 +155,15 @@
             }
         },
         template: `
-            <div class="list-component">
-                <div v-for="c in courses" :key="c.name" :class="{active: selectedCourse === c}" @click="selectedCourse = c">
-                    {{c.name}} - $ {{c.price}}
+            <div>
+                <div v-for="c in courses" :key="c" :class="{active: selectedCourse === c}" @click="selectedCourse = c">
+                    {{c}}
                 </div>
                 <hr>
                 <p v-if="courses.length > 0">一共{{total}}课程</p>
                 <p v-else>没有课程</p>
             </div>
         `,
-        mounted() {
-            // 获取通过$attrs传入的属性
-            // 通过$attrs传递未在props中注册的属性(包括自定义属性)
-            console.log(this.$attrs);
-
-            console.log('-------获取实例代理的props--------');
-            console.log(this.$props);
-            console.log('--------------------------------');
-
-            console.log('-------获取实例代理的根DOM元素--------');
-            console.log(this.$el);
-            console.log('--------------------------------');
-
-            console.log('-------获取当前实例的父组件--------');
-            console.log(this.$parent);
-            console.log('--------------------------------');
-        },
         computed: {
             total() {
                 return this.courses.length + '门';
@@ -164,6 +197,7 @@
                 this.$emit('add-course')
             },
             onInput(e) {
+                console.log(e);
                 this.$emit('input', e.target.value)
             }
         },
@@ -173,53 +207,36 @@
      * 弹窗组件/使用插槽内容分发
     */
     Vue.component('message', {
-        data() {
-            return {
-                show: false
-            }
-        },
         props: {
             types: {
                 type: String,
                 default: ''
             },
-            // isShow: {
-            //     type: Boolean,
-            //     default: false
-            // },
+            isShow: {
+                type: Boolean,
+                default: false
+            },
             title: {
                 type: String,
                 default: ''
             }
         },
         template: `
-            <div v-if="show">
+            <div v-if="isShow">
                 <!-- 具名插槽/作用域插槽 -->
                 <slot name="title" title="来自message的标题"></slot>
                 <!-- 通过插槽获取内容 -->
                 <slot></slot>
                 <!-- update:xxx 对应父组件使用了sync -->
-                <span class="message-close-btn" @click="toggle">x</span>
+                <span class="message-close-btn" @click="$emit('update:is-show', false)">x</span>
             </div>
         `,
-        mounted() {
-            console.log('****获取当前组件插槽****');
-            console.log(this.$slots);
-            console.log(this.$slots.title);
-            console.log('*********************');
-        },
-        methods: {
-            toggle() {
-                this.show = !this.show;
-            }
-        },
         watch: {
             // 监听show，如果show值发生变化，且没有点击关闭，则自动关闭
-            show(newValue, oldValue) {
+            isShow(newValue, oldValue) {
                 if (newValue) {
                     setTimeout(() => {
-                        // this.$emit('update:is-show', false)
-                        this.toggle();
+                        this.$emit('update:is-show', false)
                     }, 3000);
                 }
             }
@@ -239,57 +256,21 @@
                 course: [],
                 coursename: '',
                 selectedCourse: null,
-                show: false,
-                price: 0,
-                attrs: '测试$attrs'
+                show: false
             }
         },
         async created() {
             const courses = await getCourses();
             this.course = courses;
-
-            // 批量更新价格
-            this.batchPrice();
-        },
-        mounted() {
-            // 组件上使用ref属性，方法中通过$refs获取元素
-            this.$refs.inPrice.focus();
-
-            // API
-            // 实例property
-            console.log(this.$data);
-            // 获取当前实例根DOM元素
-            console.log(this.$el);
-            // 获取父组件/如果没有则undefined
-            console.log(this.$parent);
-            // 获取子组件
-            console.log(this.$children);
-            console.log(this.$children[0].$data);
-            console.log(this.$children[1].$el);
-            // 获取当前组件中的插槽
-            console.log(this.$slots);
         },
         methods: {
             addCourse(e) {
-                let o = {};
-                o.name = this.coursename;
-                this.course.push(o);
-                //let unique = new Set(this.course);
-                //this.course = [...unique];
-                //this.show = true;
+                this.course.push(this.coursename);
+                let unique = new Set(this.course);
+                this.course = [...unique];
 
-                this.$refs.msgCom.toggle();
+                this.show = true;
 
-                console.log(app.$data);
-                console.log(this.$data);
-            },
-            batchPrice() {
-                // 由于price属性是动态新增属性，即使修改了price的值也不会重新渲染。
-                this.course.forEach(course => {
-                    // course.price = this.price;
-                    // 解决方案就是使用$set
-                    this.$set(course, 'price', this.price);
-                });
             }
         },
         watch: {

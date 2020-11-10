@@ -1,7 +1,6 @@
 <template>
     <li>
         {{title}}
-        <button @click="$emit('remove')">Remove</button>
     </li>
 </template>
 
@@ -9,7 +8,7 @@
     export default {
         data() {
             return {
-                title: ''
+                title: 'message'
             }
         },
         mounted () {
